@@ -16,6 +16,7 @@ import com.testing.entidades.Usuario;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class IntegracionBigBangTest {
 
+
     @Autowired
     private TestRestTemplate restTemplate;
 
@@ -37,7 +38,6 @@ class IntegracionBigBangTest {
 
         Usuario actualizado = new Usuario("Luis Mod", "luismod@example.com");
         restTemplate.exchange("/usuarios/" + id, HttpMethod.PUT, new HttpEntity<>(actualizado), Usuario.class);
-
         ResponseEntity<Usuario> respuesta = restTemplate.getForEntity("/usuarios/" + id, Usuario.class);
         assertThat(respuesta.getBody().getNombre()).contains("Mod");
     }

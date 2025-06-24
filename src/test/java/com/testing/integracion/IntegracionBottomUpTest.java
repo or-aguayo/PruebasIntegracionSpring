@@ -12,6 +12,7 @@ import com.testing.servicios.UsuarioServicio;
 import com.testing.controladores.UsuarioControlador;
 import com.testing.repositorios.UsuarioRepositorio;
 
+
 @SpringBootTest
 @Transactional
 class IntegracionBottomUpTest {
