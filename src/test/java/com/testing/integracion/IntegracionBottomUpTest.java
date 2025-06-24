@@ -9,20 +9,43 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.testing.entidades.Usuario;
 import com.testing.servicios.UsuarioServicio;
+import com.testing.controladores.UsuarioControlador;
+import com.testing.repositorios.UsuarioRepositorio;
+
 
 @SpringBootTest
 @Transactional
 class IntegracionBottomUpTest {
 
     @Autowired
+    private UsuarioRepositorio repositorio;
+
+    @Autowired
     private UsuarioServicio servicio;
 
-    @Test
-    void guardarYObtenerUsuario_BottomUp() {
-        Usuario usuario = new Usuario("Ana", "ana@example.com");
-        Usuario guardado = servicio.guardarUsuario(usuario);
+    @Autowired
+    private UsuarioControlador controlador;
 
-        assertThat(guardado.getId()).isNotNull();
-        assertThat(servicio.buscarUsuarioPorId(guardado.getId())).isPresent();
+    // Paso 1: probar la capa de repositorio
+    @Test
+    void agregarUsuario_BottomUp() {
+        Usuario usuario = repositorio.save(new Usuario("Ana", "ana@example.com"));
+        assertThat(repositorio.findById(usuario.getId())).isPresent();
+    }
+
+    // Paso 2: integrar servicio y repositorio
+    @Test
+    void modificarUsuario_BottomUp() {
+        Usuario usuario = repositorio.save(new Usuario("Ana", "ana@example.com"));
+        Usuario actualizado = servicio.actualizarUsuario(usuario.getId(), new Usuario("Ana Mod", "anamod@example.com"));
+        assertThat(actualizado.getNombre()).contains("Mod");
+    }
+
+    // Paso 3: integrar controlador con el resto de capas
+    @Test
+    void eliminarUsuario_BottomUp() {
+        Usuario usuario = repositorio.save(new Usuario("Ana", "ana@example.com"));
+        controlador.eliminarUsuario(usuario.getId());
+        assertThat(repositorio.findById(usuario.getId())).isEmpty();
     }
 }

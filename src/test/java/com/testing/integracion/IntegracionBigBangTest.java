@@ -16,29 +16,41 @@ import com.testing.entidades.Usuario;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class IntegracionBigBangTest {
 
-    @LocalServerPort
-    private int port;
 
     @Autowired
     private TestRestTemplate restTemplate;
 
+    // Enfoque Big Bang: todas las capas se integran y se prueba el endpoint real
     @Test
-    void flujoCompleto_BigBang() {
+    void agregarUsuario_BigBang() {
         Usuario usuario = new Usuario("Luis", "luis@example.com");
-        ResponseEntity<Usuario> respuestaCreacion = restTemplate.postForEntity("/usuarios", usuario, Usuario.class);
-        assertThat(respuestaCreacion.getStatusCode().is2xxSuccessful()).isTrue();
+        ResponseEntity<Usuario> respuesta = restTemplate.postForEntity("/usuarios", usuario, Usuario.class);
+        assertThat(respuesta.getStatusCode().is2xxSuccessful()).isTrue();
+        assertThat(respuesta.getBody().getId()).isNotNull();
+    }
 
-        Long id = respuestaCreacion.getBody().getId();
-        assertThat(id).isNotNull();
+    // Enfoque Big Bang: actualización a través de la API integrada
+    @Test
+    void modificarUsuario_BigBang() {
+        Usuario usuario = new Usuario("Luis", "luis@example.com");
+        ResponseEntity<Usuario> creacion = restTemplate.postForEntity("/usuarios", usuario, Usuario.class);
+        Long id = creacion.getBody().getId();
 
         Usuario actualizado = new Usuario("Luis Mod", "luismod@example.com");
         restTemplate.exchange("/usuarios/" + id, HttpMethod.PUT, new HttpEntity<>(actualizado), Usuario.class);
+        ResponseEntity<Usuario> respuesta = restTemplate.getForEntity("/usuarios/" + id, Usuario.class);
+        assertThat(respuesta.getBody().getNombre()).contains("Mod");
+    }
 
-        ResponseEntity<Usuario> respuestaConsulta = restTemplate.getForEntity("/usuarios/" + id, Usuario.class);
-        assertThat(respuestaConsulta.getBody().getNombre()).contains("Mod");
+    // Enfoque Big Bang: eliminación usando todo el flujo HTTP
+    @Test
+    void eliminarUsuario_BigBang() {
+        Usuario usuario = new Usuario("Luis", "luis@example.com");
+        ResponseEntity<Usuario> creacion = restTemplate.postForEntity("/usuarios", usuario, Usuario.class);
+        Long id = creacion.getBody().getId();
 
         restTemplate.delete("/usuarios/" + id);
-        ResponseEntity<Usuario> respuestaBorrado = restTemplate.getForEntity("/usuarios/" + id, Usuario.class);
-        assertThat(respuestaBorrado.getStatusCode().is4xxClientError()).isTrue();
+        ResponseEntity<Usuario> respuesta = restTemplate.getForEntity("/usuarios/" + id, Usuario.class);
+        assertThat(respuesta.getStatusCode().is4xxClientError()).isTrue();
     }
 }
