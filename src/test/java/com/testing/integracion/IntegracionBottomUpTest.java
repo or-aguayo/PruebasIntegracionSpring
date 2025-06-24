@@ -18,11 +18,15 @@ class IntegracionBottomUpTest {
     private UsuarioServicio servicio;
 
     @Test
-    void guardarYObtenerUsuario_BottomUp() {
+    void flujoIncremental_BottomUp() {
         Usuario usuario = new Usuario("Ana", "ana@example.com");
         Usuario guardado = servicio.guardarUsuario(usuario);
-
         assertThat(guardado.getId()).isNotNull();
-        assertThat(servicio.buscarUsuarioPorId(guardado.getId())).isPresent();
+
+        Usuario actualizado = servicio.actualizarUsuario(guardado.getId(), new Usuario("Ana Mod", "anamod@example.com"));
+        assertThat(actualizado.getNombre()).contains("Mod");
+
+        servicio.eliminarUsuario(guardado.getId());
+        assertThat(servicio.buscarUsuarioPorId(guardado.getId())).isEmpty();
     }
 }

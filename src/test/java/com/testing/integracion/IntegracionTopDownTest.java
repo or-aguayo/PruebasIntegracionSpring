@@ -1,53 +1,44 @@
 package com.testing.integracion;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.Optional;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.testing.controladores.UsuarioControlador;
 import com.testing.entidades.Usuario;
-import com.testing.servicios.UsuarioServicio;
 
-@WebMvcTest(UsuarioControlador.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class IntegracionTopDownTest {
 
-    @Autowired
-    private MockMvc mvc;
-
-    @MockBean
-    private UsuarioServicio servicio;
+    @LocalServerPort
+    private int port;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private TestRestTemplate restTemplate;
 
     @Test
-    void crearYObtenerUsuario_TopDown() throws Exception {
+    void flujoIncremental_TopDown() {
         Usuario usuario = new Usuario("Juan", "juan@example.com");
-        usuario.setId(1L);
+        ResponseEntity<Usuario> respuestaCreacion = restTemplate.postForEntity("/usuarios", usuario, Usuario.class);
+        assertThat(respuestaCreacion.getStatusCode().is2xxSuccessful()).isTrue();
 
-        when(servicio.guardarUsuario(org.mockito.ArgumentMatchers.any(Usuario.class))).thenReturn(usuario);
-        when(servicio.buscarUsuarioPorId(1L)).thenReturn(Optional.of(usuario));
+        Long id = respuestaCreacion.getBody().getId();
+        assertThat(id).isNotNull();
 
-        mvc.perform(post("/usuarios")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(usuario)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nombre").value("Juan"));
+        Usuario actualizado = new Usuario("Juan Mod", "juan.mod@example.com");
+        restTemplate.exchange("/usuarios/" + id, HttpMethod.PUT, new HttpEntity<>(actualizado), Usuario.class);
 
-        mvc.perform(get("/usuarios/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.correo").value("juan@example.com"));
+        ResponseEntity<Usuario> respuestaConsulta = restTemplate.getForEntity("/usuarios/" + id, Usuario.class);
+        assertThat(respuestaConsulta.getBody().getNombre()).contains("Mod");
+
+        restTemplate.delete("/usuarios/" + id);
+        ResponseEntity<Usuario> respuestaBorrado = restTemplate.getForEntity("/usuarios/" + id, Usuario.class);
+        assertThat(respuestaBorrado.getStatusCode().is4xxClientError()).isTrue();
     }
 }
