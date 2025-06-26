@@ -5,7 +5,7 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 # Ejecutamos la compilación. Se omiten las pruebas para agilizar la imagen
-RUN mvn clean package -DskipTests
+RUN mvn clean package -Dmaven.test.skip=true
 
 # Imagen final basada en JRE
 FROM eclipse-temurin:21-jre
@@ -15,4 +15,4 @@ COPY --from=build /app/target/*.jar app.jar
 # Exponemos el puerto por defecto de Spring Boot
 EXPOSE 8080
 # Comando de inicio de la aplicación
-CMD ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
