@@ -3,19 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>Formulario Usuario</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUa6mY5x2+0p8wALofwXuhATa8cOm36YRnO+xXcZycD1J+1ltM0iPWjZWYUp" crossorigin="anonymous">
 </head>
-<body>
-<h1 th:text="${usuario.id == null} ? 'Crear usuario' : 'Editar usuario'"></h1>
-<form th:action="@{/v/usuarios/guardar}" th:object="${usuario}" method="post">
+<body class="container mt-4">
+<h1 class="mb-4" th:text="${usuario.id == null} ? 'Crear usuario' : 'Editar usuario'"></h1>
+<form th:action="@{/v/usuarios/guardar}" th:object="${usuario}" method="post" class="row g-3">
     <input type="hidden" th:field="*{id}" />
-    <label>Nombre</label>
-    <input type="text" th:field="*{nombre}" />
-    <br/>
-    <label>Correo</label>
-    <input type="email" th:field="*{correo}" />
-    <br/>
-    <button type="submit">Guardar</button>
+    <div class="col-12">
+        <label class="form-label">Nombre</label>
+        <input type="text" th:field="*{nombre}" class="form-control" />
+    </div>
+    <div class="col-12">
+        <label class="form-label">Correo</label>
+        <input type="email" th:field="*{correo}" class="form-control" />
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a th:href="@{/v/usuarios}" class="btn btn-secondary ms-2">Volver</a>
+    </div>
 </form>
-<a th:href="@{/v/usuarios}">Volver</a>
 </body>
 </html>
