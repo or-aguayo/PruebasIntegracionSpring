@@ -16,7 +16,6 @@ import com.testing.entidades.Usuario;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class IntegracionBigBangTest {
 
-
     @Autowired
     private TestRestTemplate restTemplate;
 
