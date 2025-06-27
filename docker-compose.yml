@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   app:
     #construye la imagen basado en el dockerfile
@@ -12,11 +11,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/usuarios
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: secret
-    # Evitamos conflictos de volúmenes que sobrescriben app.jar
-    # Si deseas usar montajes en desarrollo, comenta la siguiente línea
-    # volumes:
-    #   - .:/app
-
   db:
     image: mysql:8.0
     environment:
